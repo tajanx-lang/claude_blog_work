@@ -70,3 +70,10 @@ code { background: var(--surface); border: 1px solid var(--border); border-radiu
 .influence.good { border-left-color: var(--good); } .influence.good b { color: var(--good); }
 .influence.caution { border-left-color: var(--caution); } .influence.caution b { color: var(--caution); }
 .influence.bad { border-left-color: var(--bad); } .influence.bad b { color: var(--bad); }
+.influence-pair { display: flex; gap: 6px; justify-content: center; }
+.influence-mini { flex: 1; min-width: 0; }
+.influence-mini .hex { width: 40px; }
+.influence-mini .hex-name { font-size: .85rem; }
+.influence-mini .hex-sub { font-size: .7rem; }
+.influence strong .han { color: var(--muted); font-weight: 400; }
+@media (max-width: 480px) { .influence-mini .hex { width: 30px; } .influence-mini .hex-name { font-size: .75rem; } }

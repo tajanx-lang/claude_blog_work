@@ -143,20 +143,29 @@ export function divine({ upper, lower, moving, method = 'manual', input = {} }) 
   const body = TRIGRAMS[bodyNum];
   const use = TRIGRAMS[useNum];
 
-  // 영향과 과정: 호괘를 하나의 괘로 보지 않고 내호괘(3·4·5효, 위)와 외호괘(2·3·4효, 아래)로 나눠
-  // 처음에는 내호괘가, 나중에는 외호괘가 체괘에 어떤 영향을 주는지 본다.
+  // 영향과 과정: 호괘를 하나의 괘(예: 화수미제)로 보지 않는다.
+  // 체괘를 내호괘(3·4·5효)와 외호괘(2·3·4효) 사이에 두고 두 괘를 새로 세운다.
+  //   초반: 내호괘(위) + 체괘(아래)   예) 풍산점 3효 → 離 위 巽 아래 = 화풍정
+  //   후반: 체괘(위) + 외호괘(아래)   예) 풍산점 3효 → 巽 위 坎 아래 = 풍수환
   const innerNum = TRIGRAM_BY_LINES[[lines[2], lines[3], lines[4]].join('')];
   const outerNum = TRIGRAM_BY_LINES[[lines[1], lines[2], lines[3]].join('')];
   const influence = [
-    { stage: '처음', role: '내호괘', ...TRIGRAMS[innerNum], number: innerNum, relation: mutualRelation(body.element, TRIGRAMS[innerNum].element) },
-    { stage: '나중', role: '외호괘', ...TRIGRAMS[outerNum], number: outerNum, relation: mutualRelation(body.element, TRIGRAMS[outerNum].element) },
+    {
+      stage: '초반', role: '내호괘', ...TRIGRAMS[innerNum], number: innerNum,
+      hexagram: hexagram(innerNum, bodyNum),
+      relation: mutualRelation(body.element, TRIGRAMS[innerNum].element),
+    },
+    {
+      stage: '후반', role: '외호괘', ...TRIGRAMS[outerNum], number: outerNum,
+      hexagram: hexagram(bodyNum, outerNum),
+      relation: mutualRelation(body.element, TRIGRAMS[outerNum].element),
+    },
   ];
 
   return {
     method,
     input,
     original: hexagram(upper, lower),
-    mutual: fromLines([lines[1], lines[2], lines[3], lines[2], lines[3], lines[4]]),
     changed: fromLines(changed),
     moving,
     lines,
