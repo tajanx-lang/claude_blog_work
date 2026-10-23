@@ -11,7 +11,7 @@ Claude Code와 함께 만드는 블로그 프로젝트입니다.
 숫자 두 개 또는 지금 시각(음력 연월일시)으로 매화역수 점괘를 뽑아 본괘·호괘·변괘와 체용 길흉을 보여 줍니다.
 
 - 점괘 페이지: `meihua/`
-- 외부 호출: `meihua/?a=12&b=34` (숫자), `meihua/?t=now` (지금 시각)
+- 외부 호출: `meihua/?a=12&b=34&h=7` (숫자 두 개 + 시진 번호, h 생략 시 지금 시각), `meihua/?t=now` (지금 시각)
 - 다른 블로그에 넣기: `<iframe src=".../meihua/embed.html?t=now" width="100%" height="520"></iframe>`
 - 계산 모듈: `meihua/meihua.js` (`fromNumbers`, `fromLunarTime`, `divine`)
 

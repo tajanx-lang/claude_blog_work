@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>매화역수 점괘</title>
-  <link rel="stylesheet" href="style.css?v=2026102302">
+  <link rel="stylesheet" href="style.css?v=2026102303">
   <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar@0.3.6/dist/korean-lunar-calendar.min.js"></script>
 </head>
 <body>
@@ -23,13 +23,13 @@
 
     <div class="help">
       <p><strong>외부에서 호출하기</strong></p>
-      <p>숫자로: <code>meihua/?a=12&amp;b=34</code></p>
+      <p>숫자로: <code>meihua/?a=12&amp;b=34&amp;h=7</code> (h = 시진 번호 子=1~亥=12, 생략하면 지금 시각)</p>
       <p>지금 시각으로: <code>meihua/?t=now</code></p>
       <p>다른 블로그에 넣기: <code>&lt;iframe src="…/meihua/embed.html?t=now" width="100%" height="520"&gt;&lt;/iframe&gt;</code></p>
     </div>
   </main>
   <script type="module">
-    import { mount } from './widget.js?v=2026102302';
+    import { mount } from './widget.js?v=2026102303';
     mount({ result: document.getElementById('meihua-result'), form: document.getElementById('meihua-form') });
   </script>
 </body>

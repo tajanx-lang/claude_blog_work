@@ -1,7 +1,7 @@
 // 매화역수 점괘 위젯. URL 파라미터로 외부에서 호출할 수 있다.
 //   ?a=12&b=34  → 숫자 두 개로 점괘
 //   ?t=now      → 지금 시각(음력 연월일시)으로 점괘
-import { fromNumbers, fromLunarTime } from './meihua.js?v=2026102302';
+import { fromNumbers, fromLunarTime } from './meihua.js?v=2026102303';
 
 const LUCK_CLASS = { 대길: 'great', 길: 'good', 소흉: 'caution', 흉: 'bad' };
 
@@ -37,7 +37,7 @@ export function render(el, r) {
   changedLines[r.moving - 1] = 1 - changedLines[r.moving - 1];
   const inputText = r.method === 'time'
     ? `음력 ${r.input.yearBranch}년 ${r.input.month}월 ${r.input.day}일 ${r.input.hourBranch}시`
-    : `숫자 ${r.input.a}, ${r.input.b}`;
+    : `숫자 ${r.input.a}, ${r.input.b} · ${r.input.hourBranch}시(${r.input.hourNum})`;
 
   el.innerHTML = `
     <p class="input">${inputText} · 동효 ${r.moving}효</p>
@@ -63,12 +63,22 @@ export function render(el, r) {
 
 const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
 
+// 서울 시간 기준 { year, month, day, hour }
+function seoulNow(date = new Date()) {
+  return Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', hourCycle: 'h23',
+  }).formatToParts(date).map(x => [x.type, Number(x.value)]));
+}
+
+// 시진 번호: 子=1, 丑=2, ... 亥=12
+function hourBranchNum(hour) {
+  return Math.floor((hour + 1) / 2) % 12 + 1;
+}
+
 // 서울 시간 기준 한국 음력(한국천문연구원 기준)으로 계산한다.
 // 브라우저에 korean-lunar-calendar(전역 KoreanLunarCalendar)가 로드되어 있어야 한다.
 export function fromNow(date = new Date()) {
-  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', hourCycle: 'h23',
-  }).formatToParts(date).map(x => [x.type, Number(x.value)]));
+  const p = seoulNow(date);
   const cal = new window.KoreanLunarCalendar();
   cal.setSolarDate(p.year, p.month, p.day);
   const lunar = cal.getLunarCalendar();
@@ -76,7 +86,7 @@ export function fromNow(date = new Date()) {
     yearBranch: BRANCHES[((lunar.year - 4) % 12 + 12) % 12],
     month: lunar.month,
     day: lunar.day,
-    hourBranch: BRANCHES[Math.floor((p.hour + 1) / 2) % 12],
+    hourBranch: BRANCHES[hourBranchNum(p.hour) - 1],
   });
 }
 
@@ -84,7 +94,8 @@ export function fromParams(params) {
   if (params.has('a') && params.has('b')) {
     const a = Number(params.get('a'));
     const b = Number(params.get('b'));
-    if (Number.isFinite(a) && Number.isFinite(b) && a > 0 && b > 0) return fromNumbers(a, b);
+    const h = params.has('h') ? Number(params.get('h')) : hourBranchNum(seoulNow().hour);
+    if (Number.isFinite(a) && Number.isFinite(b) && a > 0 && b > 0 && h > 0) return fromNumbers(a, b, h);
   }
   if (params.get('t') === 'now') return fromNow();
   return null;
@@ -102,8 +113,9 @@ export function mount({ result, form }) {
     const a = Number(form.a.value);
     const b = Number(form.b.value);
     if (!(a > 0 && b > 0)) return;
-    show(fromNumbers(a, b));
-    history.replaceState(null, '', `?a=${a}&b=${b}`);
+    const h = hourBranchNum(seoulNow().hour);
+    show(fromNumbers(a, b, h));
+    history.replaceState(null, '', `?a=${a}&b=${b}&h=${h}`);
   });
   form.querySelector('[data-now]').addEventListener('click', () => {
     show(fromNow());

@@ -149,10 +149,16 @@ export function divine({ upper, lower, moving, method = 'manual', input = {} }) 
 }
 
 // 숫자 두 개로 괘를 세운다. 동효는 두 수의 합으로 정한다.
-export function fromNumbers(a, b) {
+// 숫자 두 개와 시진 번호(子=1 ~ 亥=12)로 괘를 세운다.
+// 동효는 (두 수 + 시진 수)를 6으로 나눈 나머지 (0이면 6효).
+export function fromNumbers(a, b, hourNum) {
   a = Math.abs(Math.trunc(a));
   b = Math.abs(Math.trunc(b));
-  return divine({ upper: a, lower: b, moving: a + b, method: 'numbers', input: { a, b } });
+  hourNum = mod(Math.abs(Math.trunc(hourNum)), 12);
+  return divine({
+    upper: a, lower: b, moving: a + b + hourNum, method: 'numbers',
+    input: { a, b, hourNum, hourBranch: BRANCHES[hourNum - 1] },
+  });
 }
 
 // 음력 날짜와 시각으로 괘를 세운다 (매화역수 연월일시 기괘법).
