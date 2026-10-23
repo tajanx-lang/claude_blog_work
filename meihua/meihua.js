@@ -118,6 +118,15 @@ function relation(body, use) {
   return { name: '용극체(用克體)', luck: '흉', text: '바깥 일이 나를 누르니 신중하고 조심하라.' };
 }
 
+// 변괘에서 변한 용괘가 체괘에 주는 영향 (결과)
+function resultRelation(body, changedUse) {
+  if (body === changedUse) return { name: '비화(比和)', luck: '길', text: '같은 기운으로 순조롭게 마무리된다.' };
+  if (GENERATES[changedUse] === body) return { name: '변생체(變生體)', luck: '대길', text: '끝에 도움을 얻어 일이 이루어진다.' };
+  if (CONTROLS[body] === changedUse) return { name: '체극변(體克變)', luck: '길', text: '결국 내가 다스려 얻는 것이 있다.' };
+  if (GENERATES[body] === changedUse) return { name: '체생변(體生變)', luck: '소흉', text: '끝에 힘이 빠져 손해나 수고가 따른다.' };
+  return { name: '변극체(變克體)', luck: '흉', text: '결국 눌리게 되니 신중하고 조심해야 한다.' };
+}
+
 // 호괘(내호·외호)가 체괘에 주는 영향
 function mutualRelation(body, mutual) {
   if (body === mutual) return { name: '비화(比和)', luck: '길', text: '같은 기운이 이어져 순조롭다.' };
@@ -173,6 +182,14 @@ export function divine({ upper, lower, moving, method = 'manual', input = {} }) 
     use: { ...use, number: useNum },
     relation: relation(body.element, use.element),
     influence,
+    result: (() => {
+      // 동효가 있는 쪽(용괘)이 변한 괘
+      const changedUseNum = moving <= 3
+        ? TRIGRAM_BY_LINES[changed.slice(0, 3).join('')]
+        : TRIGRAM_BY_LINES[changed.slice(3, 6).join('')];
+      const changedUse = TRIGRAMS[changedUseNum];
+      return { ...changedUse, number: changedUseNum, relation: resultRelation(body.element, changedUse.element) };
+    })(),
   };
 }
 
