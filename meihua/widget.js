@@ -1,7 +1,7 @@
 // 매화역수 점괘 위젯. URL 파라미터로 외부에서 호출할 수 있다.
 //   ?a=12&b=34  → 숫자 두 개로 점괘
 //   ?t=now      → 지금 시각(음력 연월일시)으로 점괘
-import { fromNumbers, fromLunarTime } from './meihua.js';
+import { fromNumbers, fromLunarTime } from './meihua.js?v=2026102302';
 
 const LUCK_CLASS = { 대길: 'great', 길: 'good', 소흉: 'caution', 흉: 'bad' };
 
