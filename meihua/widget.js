@@ -1,7 +1,7 @@
 // 매화역수 점괘 위젯. URL 파라미터로 외부에서 호출할 수 있다.
 //   ?a=12&b=34  → 숫자 두 개로 점괘
 //   ?t=now      → 지금 시각(음력 연월일시)으로 점괘
-import { fromNumbers, fromLunarTime } from './meihua.js?v=2026102306';
+import { fromNumbers, fromLunarTime } from './meihua.js?v=2026102307';
 
 const LUCK_CLASS = { 대길: 'great', 길: 'good', 소흉: 'caution', 흉: 'bad' };
 
@@ -67,6 +67,21 @@ function influenceHtml(r) {
   }).join('');
 }
 
+// 현재: 본괘와, 용괘가 체괘에 주는 영향
+function currentHtml(r) {
+  const h = r.original;
+  return `
+    <div class="influence ${LUCK_CLASS[r.relation.luck]}">
+      <span class="stage">본괘</span>
+      <div>
+        <strong>${h.ko} ${h.han} <span class="han">· 제${h.number}괘</span></strong>
+        <p>상괘 ${h.upperTrigram.ko}(${h.upperTrigram.han}) ${h.upperTrigram.element} 위 · 하괘 ${h.lowerTrigram.ko}(${h.lowerTrigram.han}) ${h.lowerTrigram.element} 아래</p>
+        <p>${h.meaning}</p>
+        <p>용괘 ${r.use.ko}(${r.use.han}) ${r.use.element}가 체괘 ${r.body.ko}(${r.body.han}) ${r.body.element}에 주는 영향: ${r.relation.name} · <b>${r.relation.luck}</b> — ${r.relation.text}</p>
+      </div>
+    </div>`;
+}
+
 // 결과: 변괘와, 변한 용괘가 체괘에 주는 영향
 function resultHtml(r) {
   const h = r.changed;
@@ -106,7 +121,7 @@ export function render(el, r) {
       </div>
     </div>
     <dl class="meanings">
-      <dt>현재 (${r.original.ko})</dt><dd>${r.original.meaning}</dd>
+      <dt>현재</dt><dd class="influence-list">${currentHtml(r)}</dd>
       <dt>영향과 과정</dt><dd class="influence-list">${influenceHtml(r)}</dd>
       <dt>결과</dt><dd class="influence-list">${resultHtml(r)}</dd>
     </dl>`;
