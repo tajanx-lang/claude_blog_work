@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>신(神)의 한 수</title>
+  <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.7/lunar.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Malgun Gothic', sans-serif; background: #17132a; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 24px 16px; }
+    .wrap { width: 100%; max-width: 560px; }
+    h1 { font-family: 'Batang', serif; font-size: 34px; color: #f3d489; text-align: center; margin-bottom: 6px; }
+    .sub { text-align: center; color: #b088f9; font-size: 14px; line-height: 1.6; margin-bottom: 18px; }
+    .home { display: inline-block; color: #f3d489; font-size: 13px; text-decoration: none; margin-bottom: 14px; }
+    .box { background: rgba(18, 14, 36, 0.9); border: 1px solid #f3d489; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+    .box-title { font-family: 'Batang', serif; font-size: 18px; color: #f3d489; font-weight: bold; text-align: center; margin-bottom: 10px; border-bottom: 1px solid rgba(243,212,137,0.3); padding-bottom: 6px; }
+    .methods { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .method-btn { background: #2b224a; border: 1px solid #5a4b8c; color: #fbdc93; padding: 9px 10px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; }
+    .method-btn:hover, .method-btn.active { background: #f3d489; color: #17132a; border-color: #f3d489; }
+    #panel { display: none; }
+    .iljin { font-size: 12px; color: #f3d489; text-align: center; margin-bottom: 8px; font-weight: bold; }
+    .row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .field { flex: 1; display: flex; flex-direction: column; }
+    .field label { font-size: 11px; color: #ccc; margin-bottom: 3px; }
+    .field input, .field select { padding: 8px; background: #292147; border: 1px solid #5a4b8c; border-radius: 4px; color: #fff; font-size: 14px; text-align: center; width: 100%; }
+    .action-btn { width: 100%; padding: 10px; background: #f3d489; color: #17132a; border: none; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 4px; }
+    .action-btn.ghost { background: #413470; color: #fff; }
+    .moving { font-size: 12px; color: #f3d489; margin-bottom: 6px; text-align: center; }
+    .cards { display: flex; gap: 6px; }
+    .card { flex: 1; background: #221a3b; border: 1px solid #5a4b8c; border-radius: 5px; padding: 6px 4px; text-align: center; }
+    .card-title { font-size: 11px; color: #f3d489; font-weight: bold; margin-bottom: 4px; border-bottom: 1px dashed rgba(243,212,137,0.3); padding-bottom: 3px; }
+    .card-sub { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: #ccc; }
+    .gua-name { font-size: 12px; font-weight: bold; color: #fff; font-family: 'Batang', serif; }
+    .line-text { background: #17132a; border: 1px solid #f3d489; border-radius: 6px; padding: 10px; margin-top: 8px; }
+    .line-title { font-size: 12px; color: #f3d489; font-weight: bold; margin-bottom: 4px; }
+    .line-body { font-size: 13px; line-height: 1.5; word-break: keep-all; }
+    @media (max-width: 420px) { .cards { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="home" href="../">◀ 블로그 홈</a>
+    <h1>신(神)의 한 수</h1>
+    <p class="sub">易, 无思也, 无爲也, 寂然不動, 感而遂通, 天下之故.<br>非 天下之至神, 其 孰能與於此.</p>
+
+    <section class="box">
+      <div class="box-title">소강절의 관매역수</div>
+      <div class="methods">
+        <button type="button" class="method-btn" data-method="연주점">연주점 (年月)</button>
+        <button type="button" class="method-btn" data-method="물체점">물체점 (物體)</button>
+        <button type="button" class="method-btn" data-method="소리점">소리점 (聲音)</button>
+        <button type="button" class="method-btn" data-method="동물점">동물점 (動物)</button>
+        <button type="button" class="method-btn" data-method="숫자점">숫자점 (數局)</button>
+        <button type="button" class="method-btn" data-method="방위점">방위점 (方位)</button>
+      </div>
+    </section>
+
+    <section class="box" id="panel" aria-live="polite">
+      <div class="box-title" id="panel-title">소강절의 점법</div>
+      <div id="form-area"></div>
+      <div id="output-area" hidden></div>
+    </section>
+  </main>
+
+  <script>
+    // 괘 계산과 효사 조회는 서버(Supabase Edge Function)에서 한다. 이 페이지는 입력과 표시만 맡는다.
+    const API_URL = 'https://vdiogfisdouzvtnpuvoc.supabase.co/functions/v1/shinhansu';
+
+    const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+    const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+    const TRIGRAM_OPTIONS = ['건 (乾 - 천)', '태 (兌 - 택)', '리 (離 - 화)', '진 (震 - 뢰)', '손 (巽 - 풍)', '감 (坎 - 수)', '간 (艮 - 산)', '곤 (坤 - 지)']
+      .map((label, i) => `<option value="${i + 1}">${label}</option>`).join('');
+
+    let currentMethod = '연주점';
+
+    // 시진 번호: 子=1, 丑=2, ... 亥=12
+    function hourBranchNum(h) {
+      return (h === 23 || h === 0) ? 1 : Math.floor((h + 1) / 2) % 12 + 1;
+    }
+
+    function todayIljin() {
+      const diffDays = Math.floor((new Date() - new Date(1900, 0, 1)) / 86400000);
+      return STEMS[((diffDays % 10) + 10) % 10] + BRANCHES[((diffDays % 12) + 10) % 12];
+    }
+
+    const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    function field(label, id, value = '', placeholder = '') {
+      return `<div class="field"><label for="${id}">${label}</label><input type="number" id="${id}" value="${value}" placeholder="${placeholder}"></div>`;
+    }
+
+    function formHtml(method) {
+      const hourNum = hourBranchNum(new Date().getHours());
+      const head = `<div class="iljin">오늘의 일진: ${todayIljin()}일</div>`;
+      const hourRow = `<div class="row">${field('시진 번호 (子=1 ~ 亥=12, 현재 시각 기준)', 'gm_hour_num', hourNum)}</div>`;
+      const run = `<button type="button" class="action-btn" onclick="runCalculation()">실행 및 괘상 도출</button>`;
+      const pair = (l1, id1, l2, id2) => `<div class="row">${field(l1, id1, '', l1)}${field(l2, id2, '', l2)}</div>`;
+
+      if (method === '연주점') {
+        let y = 2026, m = 1, d = 1;
+        if (window.Solar) {
+          const lunar = Solar.fromDate(new Date()).getLunar();
+          y = lunar.getYear(); m = Math.abs(lunar.getMonth()); d = lunar.getDay();
+        }
+        return head +
+          `<div class="row">${field('태세 연도 (음력 연도)', 'gm_year', y)}${field('월 (음력 월)', 'gm_month', m)}</div>` +
+          `<div class="row">${field('일 (음력 일)', 'gm_day', d)}${field('시진 번호 (子=1 ~ 亥=12)', 'gm_hour_num', hourNum)}</div>` + run;
+      }
+      if (method === '물체점') return head + pair('상괘 수', 'gm_num1', '하괘 수', 'gm_num2') + hourRow + run;
+      if (method === '소리점') return head + pair('첫 번째 소리', 'gm_num1', '두 번째 소리', 'gm_num2') + hourRow + run;
+      if (method === '동물점') return head + pair('첫 번째 마리수', 'gm_num1', '두 번째 마리수', 'gm_num2') + hourRow + run;
+      if (method === '숫자점') return head + pair('첫 번째 수', 'gm_num1', '두 번째 수', 'gm_num2') + hourRow + run;
+      if (method === '방위점') {
+        return head +
+          `<div class="row"><div class="field"><label for="gm_person_gua">인물 (상괘)</label><select id="gm_person_gua">${TRIGRAM_OPTIONS}</select></div>` +
+          `<div class="field"><label for="gm_direction_gua">방향 (하괘)</label><select id="gm_direction_gua">${TRIGRAM_OPTIONS}</select></div></div>` +
+          hourRow + run;
+      }
+      return '';
+    }
+
+    function selectMethod(method) {
+      currentMethod = method;
+      document.querySelectorAll('.method-btn').forEach(b => b.classList.toggle('active', b.dataset.method === method));
+      document.getElementById('panel').style.display = 'block';
+      document.getElementById('panel-title').textContent = '소강절의 ' + method;
+      document.getElementById('output-area').hidden = true;
+      const formArea = document.getElementById('form-area');
+      formArea.hidden = false;
+      formArea.innerHTML = formHtml(method);
+    }
+
+    const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+
+    function collectParams() {
+      const p = { m: currentMethod, h: val('gm_hour_num') };
+      if (currentMethod === '연주점') Object.assign(p, { y: val('gm_year'), mo: val('gm_month'), d: val('gm_day') });
+      else if (currentMethod === '방위점') Object.assign(p, { a: val('gm_person_gua'), b: val('gm_direction_gua') });
+      else Object.assign(p, { a: val('gm_num1'), b: val('gm_num2') });
+      return p;
+    }
+
+    function renderResult(r) {
+      const card = (title, l1, l2, g) => `
+        <div class="card">
+          <div class="card-title">${title}</div>
+          <div class="card-sub">
+            <span>${l1}: <b class="gua-name">${escapeHtml(g.upper)}</b></span>
+            <span>${l2}: <b class="gua-name">${escapeHtml(g.lower)}</b></span>
+            <span class="gua-name">${escapeHtml(g.name)}</span>
+          </div>
+        </div>`;
+      const lineText = r.line
+        ? `<strong>[${escapeHtml(r.line.line)}]</strong><br><span style="color:#bbb;">원문: ${escapeHtml(r.line.hanja)}</span><br>해설: ${escapeHtml(r.line.desc)}`
+        : '해당 효사 데이터를 찾을 수 없습니다.';
+      return `
+        <div class="moving">동효: <b>${r.changingLine}효 변동</b> (${escapeHtml(r.method)})</div>
+        <div class="cards">
+          ${card('본괘 (主卦)', '상괘', '하괘', r.main)}
+          ${card('호괘 (互卦)', '외괘', '내괘', r.hu)}
+          ${card('변괘 (變卦)', '상괘', '하괘', r.changed)}
+        </div>
+        <div class="line-text">
+          <div class="line-title">📌 [${escapeHtml(r.main.name)}] 제 ${r.changingLine}효 효사</div>
+          <div class="line-body">${lineText}</div>
+        </div>`;
+    }
+
+    async function runCalculation() {
+      const out = document.getElementById('output-area');
+      const again = `<button type="button" class="action-btn ghost" onclick="selectMethod(currentMethod)">다시 입력</button>`;
+      document.getElementById('form-area').hidden = true;
+      out.hidden = false;
+      out.innerHTML = '<div class="moving">괘를 뽑는 중…</div>';
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(collectParams()),
+        });
+        const r = await res.json();
+        if (!res.ok) throw new Error(r.error || '서버 오류');
+        out.innerHTML = renderResult(r) + again;
+      } catch (e) {
+        out.innerHTML = `<div class="line-text"><div class="line-body">결과를 가져오지 못했습니다: ${escapeHtml(e.message)}</div></div>` + again;
+      }
+    }
+
+    document.querySelectorAll('.method-btn').forEach(b => b.addEventListener('click', () => selectMethod(b.dataset.method)));
+
+    // 외부 호출: ?m=숫자점&a=12&b=34&h=7  또는  ?m=연주점
+    (function fromUrl() {
+      const p = new URLSearchParams(location.search);
+      const m = p.get('m');
+      if (!m || !document.querySelector(`[data-method="${m}"]`)) return;
+      selectMethod(m);
+      const set = (id, key) => { const el = document.getElementById(id); if (el && p.has(key)) el.value = p.get(key); };
+      set('gm_num1', 'a'); set('gm_num2', 'b'); set('gm_hour_num', 'h');
+      set('gm_person_gua', 'a'); set('gm_direction_gua', 'b');
+      set('gm_year', 'y'); set('gm_month', 'mo'); set('gm_day', 'd');
+      if (m === '연주점' || (p.has('a') && p.has('b'))) runCalculation();
+    })();
+  </script>
+</body>
+</html>
