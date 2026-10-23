@@ -80,3 +80,18 @@ code { background: var(--surface); border: 1px solid var(--border); border-radiu
 .influence-mini .hex-sub { font-size: .7rem; }
 .influence strong .han { color: var(--muted); font-weight: 400; }
 @media (max-width: 480px) { .influence-mini .hex { width: 30px; } .influence-mini .hex-name { font-size: .75rem; } }
+
+/* 블로그에서 열었을 때: 작은 카드 창처럼 */
+.back-blog { display: inline-block; margin-bottom: 12px; color: var(--accent); font-size: .9rem; font-weight: 700; text-decoration: none; }
+.back-blog[hidden] { display: none; }
+body.card .wrap { max-width: 520px; }
+@media (min-width: 600px) {
+  body.card { background: #e9e3da; }
+  body.card .wrap {
+    margin: 32px auto; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.12); padding: 24px 20px 32px;
+  }
+}
+@media (min-width: 600px) and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body.card { background: #121110; }
+}
