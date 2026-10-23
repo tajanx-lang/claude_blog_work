@@ -58,3 +58,15 @@ button.ghost { background: transparent; color: var(--accent); }
 .help { margin-top: 32px; font-size: .85rem; color: var(--muted); }
 code { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1px 4px; word-break: break-all; }
 @media (max-width: 480px) { .hex-row { gap: 6px; } .hex-card { padding: 8px 4px; } .hex { width: 48px; } }
+.meanings dd.influence-list { color: var(--text); }
+.influence {
+  display: flex; gap: 12px; align-items: flex-start; margin: 6px 0;
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid; border-radius: 10px; padding: 10px 12px;
+}
+.influence .stage { font-weight: 700; min-width: 36px; color: var(--muted); }
+.influence strong { font-size: .92rem; }
+.influence p { margin: 2px 0 0; font-size: .88rem; color: var(--muted); }
+.influence.great { border-left-color: var(--great); } .influence.great b { color: var(--great); }
+.influence.good { border-left-color: var(--good); } .influence.good b { color: var(--good); }
+.influence.caution { border-left-color: var(--caution); } .influence.caution b { color: var(--caution); }
+.influence.bad { border-left-color: var(--bad); } .influence.bad b { color: var(--bad); }

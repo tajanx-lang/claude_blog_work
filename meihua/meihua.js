@@ -118,6 +118,15 @@ function relation(body, use) {
   return { name: '용극체(用克體)', luck: '흉', text: '바깥 일이 나를 누르니 신중하고 조심하라.' };
 }
 
+// 호괘(내호·외호)가 체괘에 주는 영향
+function mutualRelation(body, mutual) {
+  if (body === mutual) return { name: '비화(比和)', luck: '길', text: '같은 기운이 이어져 순조롭다.' };
+  if (GENERATES[mutual] === body) return { name: '호생체(互生體)', luck: '대길', text: '도움이 들어와 체괘가 힘을 얻는다.' };
+  if (CONTROLS[body] === mutual) return { name: '체극호(體克互)', luck: '길', text: '체괘가 다스릴 수 있으니 노력하면 풀린다.' };
+  if (GENERATES[body] === mutual) return { name: '체생호(體生互)', luck: '소흉', text: '체괘의 힘이 빠져나가 수고가 따른다.' };
+  return { name: '호극체(互克體)', luck: '흉', text: '체괘가 눌리니 신중하고 조심해야 한다.' };
+}
+
 // 위 괘 수, 아래 괘 수(1~8), 동효(1~6, 아래부터)로 점괘를 풀이한다.
 export function divine({ upper, lower, moving, method = 'manual', input = {} }) {
   upper = mod(upper, 8);
@@ -134,6 +143,15 @@ export function divine({ upper, lower, moving, method = 'manual', input = {} }) 
   const body = TRIGRAMS[bodyNum];
   const use = TRIGRAMS[useNum];
 
+  // 영향과 과정: 호괘를 하나의 괘로 보지 않고 내호괘(3·4·5효, 위)와 외호괘(2·3·4효, 아래)로 나눠
+  // 처음에는 내호괘가, 나중에는 외호괘가 체괘에 어떤 영향을 주는지 본다.
+  const innerNum = TRIGRAM_BY_LINES[[lines[2], lines[3], lines[4]].join('')];
+  const outerNum = TRIGRAM_BY_LINES[[lines[1], lines[2], lines[3]].join('')];
+  const influence = [
+    { stage: '처음', role: '내호괘', ...TRIGRAMS[innerNum], number: innerNum, relation: mutualRelation(body.element, TRIGRAMS[innerNum].element) },
+    { stage: '나중', role: '외호괘', ...TRIGRAMS[outerNum], number: outerNum, relation: mutualRelation(body.element, TRIGRAMS[outerNum].element) },
+  ];
+
   return {
     method,
     input,
@@ -145,6 +163,7 @@ export function divine({ upper, lower, moving, method = 'manual', input = {} }) 
     body: { ...body, number: bodyNum },
     use: { ...use, number: useNum },
     relation: relation(body.element, use.element),
+    influence,
   };
 }
 

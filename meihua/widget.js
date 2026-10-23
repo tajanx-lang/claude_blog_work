@@ -1,7 +1,7 @@
 // 매화역수 점괘 위젯. URL 파라미터로 외부에서 호출할 수 있다.
 //   ?a=12&b=34  → 숫자 두 개로 점괘
 //   ?t=now      → 지금 시각(음력 연월일시)으로 점괘
-import { fromNumbers, fromLunarTime } from './meihua.js?v=2026102303';
+import { fromNumbers, fromLunarTime } from './meihua.js?v=2026102304';
 
 const LUCK_CLASS = { 대길: 'great', 길: 'good', 소흉: 'caution', 흉: 'bad' };
 
@@ -19,13 +19,25 @@ function lineSvg(lines, moving) {
   </svg>`;
 }
 
-function hexCard(title, hex, lines, moving) {
+function hexCard(title, hex, lines, moving, sub) {
   return `<div class="hex-card">
     <div class="hex-title">${title}</div>
     ${lineSvg(lines, moving)}
     <div class="hex-name">${hex.ko} <span class="han">${hex.han}</span></div>
-    <div class="hex-sub">${hex.upperTrigram.nature} 위 ${hex.lowerTrigram.nature} · 제${hex.number}괘</div>
+    <div class="hex-sub">${sub || `${hex.upperTrigram.nature} 위 ${hex.lowerTrigram.nature} · 제${hex.number}괘`}</div>
   </div>`;
+}
+
+// 처음(내호괘) → 나중(외호괘) 순서로 체괘에 주는 영향
+function influenceHtml(r) {
+  return r.influence.map(t => `
+    <div class="influence ${LUCK_CLASS[t.relation.luck]}">
+      <span class="stage">${t.stage}</span>
+      <div>
+        <strong>${t.role} ${t.ko}(${t.han}) ${t.element} → 체괘 ${r.body.ko}(${r.body.han}) ${r.body.element}</strong>
+        <p>${t.relation.name} · <b>${t.relation.luck}</b> — ${t.relation.text}</p>
+      </div>
+    </div>`).join('');
 }
 
 function hexLines(hex) {
@@ -42,8 +54,9 @@ export function render(el, r) {
   el.innerHTML = `
     <p class="input">${inputText} · 동효 ${r.moving}효</p>
     <div class="hex-row">
-      ${hexCard('본괘 · 지금', r.original, r.lines, r.moving)}
-      ${hexCard('호괘 · 과정', r.mutual, hexLines(r.mutual), 0)}
+      ${hexCard('본괘 · 현재', r.original, r.lines, r.moving)}
+      ${hexCard('호괘 · 영향과 과정', r.mutual, hexLines(r.mutual), 0,
+        `내호 ${r.influence[0].han}(${r.influence[0].element}) · 외호 ${r.influence[1].han}(${r.influence[1].element})`)}
       ${hexCard('변괘 · 결과', r.changed, changedLines, 0)}
     </div>
     <div class="verdict ${LUCK_CLASS[r.relation.luck]}">
@@ -55,8 +68,8 @@ export function render(el, r) {
       </div>
     </div>
     <dl class="meanings">
-      <dt>지금 (${r.original.ko})</dt><dd>${r.original.meaning}</dd>
-      <dt>과정 (${r.mutual.ko})</dt><dd>${r.mutual.meaning}</dd>
+      <dt>현재 (${r.original.ko})</dt><dd>${r.original.meaning}</dd>
+      <dt>영향과 과정</dt><dd class="influence-list">${influenceHtml(r)}</dd>
       <dt>결과 (${r.changed.ko})</dt><dd>${r.changed.meaning}</dd>
     </dl>`;
 }
