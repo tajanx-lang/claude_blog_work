@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>신(神)의 한 수</title>
-  <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.7/lunar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar@0.3.6/dist/korean-lunar-calendar.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Malgun Gothic', sans-serif; background: #17132a; color: #fff; min-height: 100vh; display: flex; justify-content: center; padding: 24px 16px; }
@@ -78,9 +78,26 @@
       return (h === 23 || h === 0) ? 1 : Math.floor((h + 1) / 2) % 12 + 1;
     }
 
+    // 원래 서버처럼 서울 시간 기준으로 오늘 날짜와 시각을 정한다.
+    function seoulNow() {
+      const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', hourCycle: 'h23'
+      }).formatToParts(new Date()).map(p => [p.type, Number(p.value)]));
+      return { y: parts.year, m: parts.month, d: parts.day, h: parts.hour };
+    }
+
     function todayIljin() {
-      const diffDays = Math.floor((new Date() - new Date(1900, 0, 1)) / 86400000);
+      const { y, m, d } = seoulNow();
+      const diffDays = Math.round((Date.UTC(y, m - 1, d) - Date.UTC(1900, 0, 1)) / 86400000);
       return STEMS[((diffDays % 10) + 10) % 10] + BRANCHES[((diffDays % 12) + 10) % 12];
+    }
+
+    // 한국천문연구원 기준 음력 (원래 서버의 korean_lunar_calendar와 같은 라이브러리)
+    function todayLunar() {
+      const { y, m, d } = seoulNow();
+      const cal = new KoreanLunarCalendar();
+      cal.setSolarDate(y, m, d);
+      return cal.getLunarCalendar();
     }
 
     const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -90,7 +107,7 @@
     }
 
     function formHtml(method) {
-      const hourNum = hourBranchNum(new Date().getHours());
+      const hourNum = hourBranchNum(seoulNow().h);
       const head = `<div class="iljin">오늘의 일진: ${todayIljin()}일</div>`;
       const hourRow = `<div class="row">${field('시진 번호 (子=1 ~ 亥=12, 현재 시각 기준)', 'gm_hour_num', hourNum)}</div>`;
       const run = `<button type="button" class="action-btn" onclick="runCalculation()">실행 및 괘상 도출</button>`;
@@ -98,10 +115,7 @@
 
       if (method === '연주점') {
         let y = 2026, m = 1, d = 1;
-        if (window.Solar) {
-          const lunar = Solar.fromDate(new Date()).getLunar();
-          y = lunar.getYear(); m = Math.abs(lunar.getMonth()); d = lunar.getDay();
-        }
+        if (window.KoreanLunarCalendar) ({ year: y, month: m, day: d } = todayLunar());
         return head +
           `<div class="row">${field('태세 연도 (음력 연도)', 'gm_year', y)}${field('월 (음력 월)', 'gm_month', m)}</div>` +
           `<div class="row">${field('일 (음력 일)', 'gm_day', d)}${field('시진 번호 (子=1 ~ 亥=12)', 'gm_hour_num', hourNum)}</div>` + run;

@@ -61,14 +61,22 @@ export function render(el, r) {
     </dl>`;
 }
 
-// 브라우저에 lunar-javascript(전역 Solar)가 로드되어 있어야 한다.
+const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+
+// 서울 시간 기준 한국 음력(한국천문연구원 기준)으로 계산한다.
+// 브라우저에 korean-lunar-calendar(전역 KoreanLunarCalendar)가 로드되어 있어야 한다.
 export function fromNow(date = new Date()) {
-  const lunar = window.Solar.fromDate(date).getLunar();
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', hourCycle: 'h23',
+  }).formatToParts(date).map(x => [x.type, Number(x.value)]));
+  const cal = new window.KoreanLunarCalendar();
+  cal.setSolarDate(p.year, p.month, p.day);
+  const lunar = cal.getLunarCalendar();
   return fromLunarTime({
-    yearBranch: lunar.getYearZhi(),
-    month: lunar.getMonth(),
-    day: lunar.getDay(),
-    hourBranch: lunar.getTimeZhi(),
+    yearBranch: BRANCHES[((lunar.year - 4) % 12 + 12) % 12],
+    month: lunar.month,
+    day: lunar.day,
+    hourBranch: BRANCHES[Math.floor((p.hour + 1) / 2) % 12],
   });
 }
 
